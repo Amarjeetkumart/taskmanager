@@ -22,9 +22,19 @@ cp .env.example .env
 
 ### Step 2: Start Everything
 
+**Option 1: Using Setup Script (Recommended)**
 ```bash
 chmod +x scripts/*.sh
 ./scripts/setup.sh
+```
+
+**Option 2: Direct Docker Compose**
+```bash
+# Modern syntax (Docker Compose V2)
+docker compose up --build -d
+
+# OR if you have legacy version
+docker-compose up --build -d
 ```
 
 This will:
@@ -34,6 +44,8 @@ This will:
 - Show service status
 
 ⏱️ **Wait time**: ~2-3 minutes for first build
+
+> **Note**: If you get "docker-compose: command not found", use `docker compose` (space) instead of `docker-compose` (hyphen). See [DOCKER_COMPOSE_GUIDE.md](DOCKER_COMPOSE_GUIDE.md) for details.
 
 ### Step 3: Test It!
 
@@ -49,11 +61,29 @@ This creates a test user and performs various operations.
 
 | Service | URL | Purpose |
 |---------|-----|---------|
+| **Frontend App** | http://localhost:5173 | React UI Application |
 | **Main API** | http://localhost:3000 | Primary endpoint |
-| **Nginx Proxy** | http://localhost | Load-balanced access |
+| **Nginx Proxy** | http://localhost:8080 | Load-balanced access |
 | Auth Service | http://localhost:3001 | Direct auth access |
 | User Service | http://localhost:3002 | Direct user access |
 | Task Service | http://localhost:3003 | Direct task access |
+
+### Using the Frontend
+
+1. Open your browser and go to http://localhost:5173
+2. Click "Get Started" to create a new account
+3. Fill in your details and register
+4. You'll be automatically logged in and redirected to the dashboard
+5. Start creating and managing tasks with the intuitive UI!
+
+**Features:**
+- ✨ Beautiful, responsive design
+- 📊 Dashboard with task statistics
+- ✅ Complete task management (create, edit, delete)
+- 🔍 Search and filter tasks
+- 🏷️ Tag and prioritize tasks
+- 👤 User profile management
+- 👑 Admin panel (for admin users)
 
 ### Quick API Test
 
@@ -92,20 +122,20 @@ curl -X GET http://localhost:3000/api/tasks \
 
 ```bash
 # All services
-docker-compose logs -f
+docker compose logs -f
 
 # Specific service
-docker-compose logs -f task-service
+docker compose logs -f task-service
 
 # Last 100 lines
-docker-compose logs --tail=100
+docker compose logs --tail=100
 ```
 
 ### Check Status
 
 ```bash
 # Service health
-docker-compose ps
+docker compose ps
 
 # Resource usage
 docker stats
@@ -118,20 +148,20 @@ curl http://localhost:3000/health
 
 ```bash
 # Stop all
-docker-compose down
+docker compose down
 
 # Stop and remove data (⚠️ WARNING: deletes all data)
-docker-compose down -v
+docker compose down -v
 ```
 
 ### Restart Services
 
 ```bash
 # Restart all
-docker-compose restart
+docker compose restart
 
 # Restart one service
-docker-compose restart task-service
+docker compose restart task-service
 ```
 
 ## 📱 Example Workflow
@@ -278,11 +308,11 @@ sudo kill PID
 
 ```bash
 # View detailed logs
-docker-compose logs
+docker compose logs
 
 # Restart from scratch
-docker-compose down
-docker-compose up -d --build
+docker compose down
+docker compose up -d --build
 
 # Check Docker is running
 docker info
@@ -292,21 +322,21 @@ docker info
 
 ```bash
 # Wait for databases to initialize (30-60 seconds)
-docker-compose ps
+docker compose ps
 
 # Check database logs
-docker-compose logs postgres
-docker-compose logs mongodb
+docker compose logs postgres
+docker compose logs mongodb
 
 # Restart databases
-docker-compose restart postgres mongodb
+docker compose restart postgres mongodb
 ```
 
 ### Can't Access API
 
 ```bash
 # Check services are running
-docker-compose ps
+docker compose ps
 
 # All should show "Up (healthy)"
 
@@ -348,7 +378,7 @@ When you're done testing:
 
 ```bash
 # Stop services (keeps data)
-docker-compose down
+docker compose down
 
 # Remove everything including data
 ./scripts/cleanup.sh
@@ -369,19 +399,19 @@ docker-compose down
 
 3. **Create aliases**:
    ```bash
-   alias task-start='cd ~/taskManager && docker-compose up -d'
-   alias task-stop='cd ~/taskManager && docker-compose down'
-   alias task-logs='cd ~/taskManager && docker-compose logs -f'
+   alias task-start='cd ~/taskManager && docker compose up -d'
+   alias task-stop='cd ~/taskManager && docker compose down'
+   alias task-logs='cd ~/taskManager && docker compose logs -f'
    ```
 
 4. **Watch logs in real-time**:
    ```bash
-   docker-compose logs -f --tail=50
+   docker compose logs -f --tail=50
    ```
 
 5. **Quick rebuild**:
    ```bash
-   docker-compose up -d --build SERVICE_NAME
+   docker compose up -d --build SERVICE_NAME
    ```
 
 ## 🎉 Success!

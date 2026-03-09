@@ -19,6 +19,51 @@ taskManager/
 │   ├── .gitignore                     # Git ignore rules
 │   └── docker-compose.yml             # Docker orchestration (all services)
 │
+├── � Frontend (Port 5173)
+│   ├── src/
+│   │   ├── components/                # Reusable components
+│   │   │   ├── auth/
+│   │   │   │   └── ProtectedRoute.jsx # Route protection
+│   │   │   └── layout/
+│   │   │       ├── Layout.jsx         # Main layout wrapper
+│   │   │       └── Navbar.jsx         # Navigation bar
+│   │   ├── contexts/
+│   │   │   └── AuthContext.jsx        # Authentication state
+│   │   ├── pages/
+│   │   │   ├── admin/
+│   │   │   │   └── AdminPanel.jsx     # User management
+│   │   │   ├── auth/
+│   │   │   │   ├── Login.jsx          # Login page
+│   │   │   │   └── Register.jsx       # Registration page
+│   │   │   ├── dashboard/
+│   │   │   │   └── Dashboard.jsx      # Main dashboard
+│   │   │   ├── profile/
+│   │   │   │   └── Profile.jsx        # User profile
+│   │   │   ├── tasks/
+│   │   │   │   ├── TaskDetail.jsx     # Task details
+│   │   │   │   ├── TaskForm.jsx       # Create/Edit task
+│   │   │   │   └── TaskList.jsx       # Task list
+│   │   │   └── Landing.jsx            # Landing page
+│   │   ├── services/
+│   │   │   ├── api.js                 # Axios instance
+│   │   │   ├── auth.service.js        # Auth API calls
+│   │   │   ├── task.service.js        # Task API calls
+│   │   │   └── user.service.js        # User API calls
+│   │   ├── utils/
+│   │   │   └── helpers.js             # Utility functions
+│   │   ├── App.jsx                    # Main app & routing
+│   │   ├── main.jsx                   # Entry point
+│   │   └── index.css                  # Global styles
+│   ├── public/                        # Static assets
+│   ├── Dockerfile                     # Frontend container
+│   ├── nginx.conf                     # Frontend nginx config
+│   ├── package.json                   # Dependencies
+│   ├── vite.config.js                 # Vite configuration
+│   ├── tailwind.config.js             # Tailwind CSS config
+│   ├── postcss.config.js              # PostCSS config
+│   ├── README.md                      # Frontend documentation
+│   └── DEVELOPMENT.md                 # Development guide
+│
 ├── 🌐 API Gateway (Port 3000)
 │   ├── src/
 │   │   └── index.js                   # Main gateway server
@@ -73,7 +118,7 @@ taskManager/
 │   ├── Dockerfile                     # Task container config
 │   └── package.json                   # Dependencies
 │
-├── 🔄 Nginx (Port 80/443)
+├── 🔄 Nginx (Port 8080/8443)
 │   ├── nginx.conf                     # Reverse proxy configuration
 │   └── Dockerfile                     # Nginx container config
 │
@@ -81,19 +126,28 @@ taskManager/
     ├── setup.sh                       # Auto setup & deployment (executable)
     ├── cleanup.sh                     # System cleanup (executable)
     ├── test-api.sh                    # API testing script (executable)
+    ├── start-frontend.sh              # Frontend development (executable)
     └── init-mongo.js                  # MongoDB initialization
 ```
 
 ## File Count Summary
 
-- **Total Files**: 47
+- **Total Files**: 75+
+- **Frontend Components**: 25+ React components and services
 - **Microservices**: 4 (API Gateway, Auth, User, Task)
-- **Docker Configs**: 5 Dockerfiles + 1 docker-compose.yml
-- **Documentation**: 8 comprehensive guides
-- **Scripts**: 4 utility scripts
-- **Source Files**: 24 JavaScript files
+- **Docker Configs**: 6 Dockerfiles + 1 docker-compose.yml
+- **Documentation**: 10+ comprehensive guides
+- **Scripts**: 5 utility scripts
+- **Source Files**: 50+ JavaScript/JSX files
 
 ## Services Breakdown
+
+### 0. Frontend (25+ files)
+- Modern React application with Vite
+- Tailwind CSS for styling
+- Complete user interface for all features
+- Protected routes and authentication
+- Admin panel for user management
 
 ### 1. API Gateway (3 files)
 - Entry point for all API requests

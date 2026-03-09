@@ -11,6 +11,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.AUTH_SERVICE_PORT || 3001;
 
+// Trust reverse proxy headers from Docker network/Nginx/API Gateway
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 app.use(cors({
