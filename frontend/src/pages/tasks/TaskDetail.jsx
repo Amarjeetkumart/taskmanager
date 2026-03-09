@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import { taskService } from '../../services/task.service';
@@ -12,11 +12,7 @@ const TaskDetail = () => {
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadTask();
-  }, [id]);
-
-  const loadTask = async () => {
+  const loadTask = useCallback(async () => {
     try {
       const data = await taskService.getTaskById(id);
       setTask(data.task);
@@ -26,7 +22,11 @@ const TaskDetail = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, navigate]);
+
+  useEffect(() => {
+    loadTask();
+  }, [loadTask]);
 
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this task?')) return;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Layout from '../../components/layout/Layout';
 import { userService } from '../../services/user.service';
 import toast from 'react-hot-toast';
@@ -16,11 +16,7 @@ const AdminPanel = () => {
     totalPages: 0,
   });
 
-  useEffect(() => {
-    loadUsers();
-  }, [pagination.page, searchTerm]);
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       setLoading(true);
       const params = {
@@ -30,13 +26,17 @@ const AdminPanel = () => {
       };
       const data = await userService.getAllUsers(params);
       setUsers(data.users || []);
-      setPagination(data.pagination || pagination);
+      setPagination((prev) => data.pagination || prev);
     } catch (error) {
       toast.error('Failed to load users');
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.page, pagination.limit, searchTerm]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   const handleDeleteUser = async (userId) => {
     if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {

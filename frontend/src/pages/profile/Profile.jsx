@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import Layout from '../../components/layout/Layout';
 import { userService } from '../../services/user.service';
-import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { User, Mail, Calendar, Save } from 'lucide-react';
 import { formatDate } from '../../utils/helpers';
 
 const Profile = () => {
-  const { user: authUser } = useAuth();
   const [user, setUser] = useState(null);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);

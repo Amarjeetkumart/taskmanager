@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import { taskService } from '../../services/task.service';
@@ -21,13 +21,7 @@ const TaskForm = () => {
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(isEditMode);
 
-  useEffect(() => {
-    if (isEditMode) {
-      loadTask();
-    }
-  }, [id]);
-
-  const loadTask = async () => {
+  const loadTask = useCallback(async () => {
     try {
       const data = await taskService.getTaskById(id);
       const task = data.task;
@@ -45,7 +39,13 @@ const TaskForm = () => {
     } finally {
       setInitialLoading(false);
     }
-  };
+  }, [id, navigate]);
+
+  useEffect(() => {
+    if (isEditMode) {
+      loadTask();
+    }
+  }, [isEditMode, loadTask]);
 
   const handleChange = (e) => {
     setFormData({

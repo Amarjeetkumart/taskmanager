@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import { taskService } from '../../services/task.service';
@@ -21,11 +21,7 @@ const TaskList = () => {
     totalPages: 0,
   });
 
-  useEffect(() => {
-    loadTasks();
-  }, [filters, pagination.page]);
-
-  const loadTasks = async () => {
+  const loadTasks = useCallback(async () => {
     try {
       setLoading(true);
       const params = {
@@ -35,13 +31,17 @@ const TaskList = () => {
       };
       const data = await taskService.getAllTasks(params);
       setTasks(data.tasks || []);
-      setPagination(data.pagination || pagination);
+      setPagination((prev) => data.pagination || prev);
     } catch (error) {
       toast.error('Failed to load tasks');
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, pagination.page, pagination.limit]);
+
+  useEffect(() => {
+    loadTasks();
+  }, [loadTasks]);
 
   const handleFilterChange = (key, value) => {
     setFilters({ ...filters, [key]: value });
