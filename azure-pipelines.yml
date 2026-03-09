@@ -1,9 +1,163 @@
 trigger:
-- main
+  branches:
+    include:
+      - main
+      - develop
+      - feature/*
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
 
 pool:
-  name: Azure Pipelines
+  vmImage: ubuntu-latest
 
-steps:
-- script: echo "Hello from self hosted agent"
-  displayName: Run Script
+variables:
+  NODE_VERSION: '20.x'
+  DOCKER_BUILDKIT: '1'
+  COMPOSE_DOCKER_CLI_BUILD: '1'
+
+stages:
+  - stage: quality_checks
+    displayName: Quality Checks
+    jobs:
+      - job: backend_dependencies
+        displayName: Install Backend Dependencies
+        steps:
+          - task: NodeTool@0
+            displayName: Use Node.js $(NODE_VERSION)
+            inputs:
+              versionSpec: $(NODE_VERSION)
+
+          - script: |
+              set -euo pipefail
+
+              install_deps() {
+                local service_path="$1"
+                echo "Installing dependencies for ${service_path}"
+                pushd "$service_path" > /dev/null
+
+                if [[ -f package-lock.json ]]; then
+                  npm ci --no-audit --no-fund
+                else
+                  npm install --no-audit --no-fund
+                fi
+
+                popd > /dev/null
+              }
+
+              install_deps api-gateway
+              install_deps auth-service
+              install_deps user-service
+              install_deps task-service
+            displayName: Install deps for backend services
+
+      - job: frontend_lint_build
+        displayName: Frontend Lint and Build
+        steps:
+          - task: NodeTool@0
+            displayName: Use Node.js $(NODE_VERSION)
+            inputs:
+              versionSpec: $(NODE_VERSION)
+
+          - script: |
+              set -euo pipefail
+              cd frontend
+
+              if [[ -f package-lock.json ]]; then
+                npm ci --no-audit --no-fund
+              else
+                npm install --no-audit --no-fund
+              fi
+
+              npm run lint
+              npm run build
+            displayName: Lint and build frontend
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish frontend build artifact
+            inputs:
+              targetPath: frontend/dist
+              artifact: frontend-dist
+
+  - stage: container_validation
+    displayName: Container Validation
+    dependsOn: quality_checks
+    condition: succeeded()
+    jobs:
+      - job: compose_build
+        displayName: Validate and Build Docker Compose Stack
+        steps:
+          - script: |
+              set -euo pipefail
+
+              # Validate compose file rendering with CI-safe env defaults.
+              docker compose --env-file .env.example config > compose.rendered.yml
+
+              # Build all project images defined in compose.
+              docker compose --env-file .env.example build --pull
+            displayName: Render and build compose services
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish rendered compose file
+            inputs:
+              targetPath: compose.rendered.yml
+              artifact: compose-rendered
+
+  - stage: smoke_test
+    displayName: Smoke Test
+    dependsOn: container_validation
+    condition: succeeded()
+    jobs:
+      - job: compose_smoke
+        displayName: Start Stack and Verify Health Endpoints
+        steps:
+          - script: |
+              set -euo pipefail
+
+              docker compose --env-file .env.example up -d --build
+
+              wait_for_url() {
+                local url="$1"
+                local retries=60
+                local delay=5
+
+                echo "Waiting for ${url}"
+                for ((i=1; i<=retries; i++)); do
+                  if curl -fsS "$url" > /dev/null; then
+                    echo "Healthy: ${url}"
+                    return 0
+                  fi
+                  sleep "$delay"
+                done
+
+                echo "Timed out waiting for ${url}"
+                return 1
+              }
+
+              wait_for_url "http://localhost:3000/health"
+              wait_for_url "http://localhost:5173/"
+              wait_for_url "http://localhost:8080/health"
+            displayName: Boot stack and verify health checks
+
+          - script: |
+              set -euo pipefail
+              docker compose --env-file .env.example ps
+              docker compose --env-file .env.example logs --no-color > compose.logs.txt
+            displayName: Collect compose logs
+            condition: always()
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish compose logs
+            condition: always()
+            inputs:
+              targetPath: compose.logs.txt
+              artifact: compose-logs
+
+          - script: |
+              set -euo pipefail
+              docker compose --env-file .env.example down -v
+            displayName: Tear down stack
+            condition: always()
